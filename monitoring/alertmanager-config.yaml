@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: ai-healer-alertmanager
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  route:
+    receiver: webhook-receiver
+    groupBy: ['alertname', 'pod']
+    groupWait: 10s
+    groupInterval: 5m
+    repeatInterval: 1h
+  receivers:
+  - name: webhook-receiver
+    webhookConfigs:
+    - url: 'http://ai-agent-service.default.svc.cluster.local:8000/webhook'
+      sendResolved: true
