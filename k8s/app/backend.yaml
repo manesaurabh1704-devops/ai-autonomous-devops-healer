@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: manesaurabh1704devops/ai-healer-backend:latest
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mariadb://mariadb:3306/studentdb"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "student"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "studentpassword"
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: default
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 8080
+    targetPort: 8080

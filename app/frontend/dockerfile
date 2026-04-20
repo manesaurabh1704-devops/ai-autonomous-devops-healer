@@ -1,28 +1,14 @@
-# Stage 1: Build React App
-FROM node:20-alpine AS builder
+# Stage 1 - Build
+FROM node:18-alpine AS builder
 WORKDIR /app
-
-# Cache dependencies first for faster rebuilds
 COPY package*.json ./
-RUN npm ci
-
-# Copy source and build
+RUN npm install
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve with Nginx
-FROM nginx:1.25-alpine
-
-# Copy built files from builder stage
+# Stage 2 - Serve
+FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
 EXPOSE 80
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD curl -f http://localhost/ || exit 1
-
 CMD ["nginx", "-g", "daemon off;"]
