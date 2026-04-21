@@ -1,3 +1,4 @@
+from langchain_aws import ChatBedrock
 from langchain_groq import ChatGroq
 from langgraph.prebuilt import create_react_agent
 from langchain.tools import tool
@@ -50,12 +51,26 @@ def tool_send_slack_notification(message: str, status: str = "info") -> str:
     """Send notification to Slack #alerts channel"""
     return send_slack_notification(message, status)
 
+def get_llm():
+    # Production → AWS Bedrock Claude Haiku
+    # Development → Groq Llama
+    use_bedrock = os.getenv("USE_BEDROCK", "false").lower() == "true"
+
+    if use_bedrock:
+        return ChatBedrock(
+            model_id="anthropic.claude-3-haiku-20240307-v1:0",
+            region_name=os.getenv("AWS_REGION", "ap-south-1"),
+            model_kwargs={"temperature": 0}
+        )
+    else:
+        return ChatGroq(
+            model="llama-3.3-70b-versatile",
+            api_key=os.getenv("GROQ_API_KEY"),
+            temperature=0
+        )
+
 def create_agent():
-    llm = ChatGroq(
-        model="llama-3.3-70b-versatile",
-        api_key=os.getenv("GROQ_API_KEY"),
-        temperature=0
-    )
+    llm = get_llm()
 
     tools = [
         tool_get_all_pods,
@@ -77,7 +92,6 @@ def create_agent():
     6. Provide clear summary: Problem → Root Cause → Action → Result
 
     ALWAYS send a Slack notification after taking any action.
-    Format: Problem detected, action taken, result.
     """
 
     agent = create_react_agent(
