@@ -220,3 +220,4 @@ test_*.py
 # AWS Keys
 *.pem
 ~/.ssh/aws-keys/
+!app/frontend/.env
