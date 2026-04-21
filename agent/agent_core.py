@@ -1,6 +1,5 @@
 from langchain_groq import ChatGroq
 from langgraph.prebuilt import create_react_agent
-from langchain_core.prompts import ChatPromptTemplate
 from langchain.tools import tool
 from dotenv import load_dotenv
 from agent.tools.k8s_healer import (
@@ -11,6 +10,7 @@ from agent.tools.prometheus_fetcher import (
     get_pod_restarts, get_pod_status
 )
 from agent.tools.log_analyzer import analyze_logs
+from agent.tools.slack_notifier import send_slack_notification
 import os
 
 load_dotenv()
@@ -45,6 +45,11 @@ def tool_analyze_logs(logs: str) -> str:
     """Analyze logs and identify issues"""
     return analyze_logs(logs)
 
+@tool
+def tool_send_slack_notification(message: str, status: str = "info") -> str:
+    """Send notification to Slack #alerts channel"""
+    return send_slack_notification(message, status)
+
 def create_agent():
     llm = ChatGroq(
         model="llama-3.3-70b-versatile",
@@ -58,7 +63,8 @@ def create_agent():
         tool_restart_pod,
         tool_rollback_deployment,
         tool_get_pod_restarts,
-        tool_analyze_logs
+        tool_analyze_logs,
+        tool_send_slack_notification
     ]
 
     system_prompt = """You are an expert DevOps AI agent.
@@ -67,10 +73,11 @@ def create_agent():
     2. Get pod logs and metrics
     3. Identify root cause of issues
     4. Take corrective actions (restart pods, rollback deployments)
-    5. Provide clear summary of what happened and what you did
+    5. Send Slack notifications about what happened
+    6. Provide clear summary: Problem → Root Cause → Action → Result
 
-    Always be concise and action-oriented.
-    After fixing, summarize: Problem → Root Cause → Action Taken → Result
+    ALWAYS send a Slack notification after taking any action.
+    Format: Problem detected, action taken, result.
     """
 
     agent = create_react_agent(
