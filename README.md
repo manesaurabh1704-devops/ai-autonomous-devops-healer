@@ -14,6 +14,46 @@
 
 ---
 
+## ⚡ TL;DR
+
+> Pod crashes → Prometheus alerts → AI Agent analyzes logs → Pod restarted automatically → Slack notified. All in **< 30 seconds.** No human involved.
+
+| What | Details |
+|---|---|
+| **Problem solved** | On-call engineers get paged at 3AM for pod crashes that can be auto-fixed |
+| **Solution** | LangChain AI agent that detects, diagnoses, and heals K8s failures autonomously |
+| **Business impact** | Reduces MTTR from minutes → seconds. Eliminates on-call toil for common infra failures |
+| **Stack** | AWS EKS + Terraform + LangChain + Groq/Bedrock + Prometheus + GitHub Actions |
+| **Proven** | Chaos engineering demo — pod crashed and healed in < 30 seconds (see Phase 10) |
+
+---
+
+## 💼 Business Impact
+
+```
+BEFORE this system:
+→ Pod crashes at 3AM
+→ Alert fires → Engineer wakes up
+→ Engineer SSHs → runs kubectl → restarts pod
+→ MTTR: 10-30 minutes (+ engineer sleep disruption)
+
+AFTER this system:
+→ Pod crashes at 3AM
+→ Agent detects → analyzes → heals → notifies Slack
+→ Engineer wakes up to: "Pod X was restarted at 3:02AM. All good."
+→ MTTR: < 30 seconds. Engineer sleeps through it.
+```
+
+**Use cases this handles today:**
+- Pod OOMKilled → restart with notification
+- Pod CrashLoopBackOff → analyze logs + restart
+- Deployment issues → rollback to previous version
+- Any infra-level pod failure → autonomous recovery
+
+> ⚠️ **Scope note:** This agent currently handles infra-level failures (pod restarts, rollbacks). Application-level bugs (wrong code, bad data) still need human intervention. Extending to deeper RCA is the next milestone.
+
+---
+
 ## 📌 What Is This?
 
 A production-grade **Agentic AI DevOps system** built on AWS EKS. When a pod crashes:
