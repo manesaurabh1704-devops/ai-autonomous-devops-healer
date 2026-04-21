@@ -33,19 +33,19 @@ No pager alerts. No manual `kubectl` commands. Just autonomous healing.
 
 ```
                         ┌─────────────────────────────────────────────┐
-                        │           AWS Mumbai (ap-south-1)           │
-                        │                                             │
-YOUR LAPTOP             │  PUBLIC SUBNET          PRIVATE SUBNET      │
+                        │           AWS Mumbai (ap-south-1)            │
+                        │                                              │
+YOUR LAPTOP             │  PUBLIC SUBNET          PRIVATE SUBNET       │
     │                   │  ┌──────────────┐    ┌──────────────────┐   │
-    │ VS Code SSH       │  │ Load Balancer│    │  EKS Cluster     │   │
-    ▼                   │  │ React Frontend│   │  ┌────────────┐  │   │
+    │ VS Code SSH        │  │ Load Balancer│    │  EKS Cluster     │   │
+    ▼                   │  │ React Frontend│    │  ┌────────────┐  │   │
 EC2 Workstation         │  │ NAT Gateway  │    │  │  Backend   │  │   │
 (Terraform runs here)   │  └──────────────┘    │  │  MariaDB   │  │   │
-    │                   │        │             │  │  AI Agent  │  │   │
-    │ terraform apply   │        │ Internal    │  │  Prometheus│  │   │
-    ▼                   │         └────────────▶││  Grafana   │  │   │
-Infra Created ──────────┘                      │  └────────────┘  │   │
-                                               └──────────────────┘   │
+    │                   │         │             │  │  AI Agent  │  │   │
+    │ terraform apply   │         │ Internal    │  │  Prometheus│  │   │
+    ▼                   │         └────────────▶│  │  Grafana   │  │   │
+Infra Created ──────────┘                       │  └────────────┘  │   │
+                                                └──────────────────┘   │
                                                                        │
 └──────────────────────────────────────────────────────────────────────┘
 ```
@@ -172,22 +172,7 @@ ai-autonomous-devops-healer/
 
 ## 📸 Project Walkthrough
 
-### Phase 1 — Project Foundation
-
-**What:** Created fresh GitHub repo, copied only application code (React + Spring Boot) from StudentSphere project.
-
-**Why:** Clean slate — no legacy Terraform, K8s manifests, or CI/CD config from previous project. Everything built from scratch for this project.
-
-**How:**
-```bash
-git clone https://github.com/manesaurabh1704-devops/ai-autonomous-devops-healer.git
-cp -r ../multi-cloud-devops-studentsphere/frontend app/frontend
-cp -r ../multi-cloud-devops-studentsphere/backend app/backend
-```
-
----
-
-### Phase 2 — AWS Infrastructure via Terraform Modules
+### Phase 1 — AWS Infrastructure via Terraform Modules
 
 **What:** Built production-grade AWS infrastructure using Terraform modules — Custom VPC, public/private subnets, Internet Gateway, NAT Gateway, Security Groups, EC2 workstation, and EKS cluster.
 
@@ -208,7 +193,7 @@ terraform apply   # 23 resources created
 
 ---
 
-### Phase 3 — App Deployment on EKS
+### Phase 2 — App Deployment on EKS
 
 **What:** Dockerized StudentSphere (React + Spring Boot + MariaDB) with fresh multi-stage Dockerfiles and deployed to EKS via Kubernetes manifests.
 
@@ -230,7 +215,7 @@ kubectl apply -f k8s/app/frontend.yaml
 
 ---
 
-### Phase 4 — Monitoring Stack
+### Phase 3 — Monitoring Stack
 
 **What:** Deployed Prometheus, Grafana, and Alertmanager using Helm (`kube-prometheus-stack`). Created custom alert rules for pod crashes, high CPU, and memory issues.
 
@@ -256,7 +241,7 @@ Custom alert rules created:
 
 ---
 
-### Phase 5 — AI Agent (LangChain + Groq)
+### Phase 4 — AI Agent (LangChain + Groq)
 
 **What:** Built a LangChain-powered AI agent with 6 tools: pod log fetcher, prometheus metrics, log analyzer, pod restarter, deployment rollback, and Slack notifier. Exposed via FastAPI.
 
@@ -285,7 +270,7 @@ uvicorn agent.main:app --host 0.0.0.0 --port 8000
 
 ---
 
-### Phase 6 — GitHub Actions CI/CD
+### Phase 5 — GitHub Actions CI/CD
 
 **What:** Automated CI/CD pipeline triggered on every `main` branch push — builds Docker images, pushes to DockerHub, and deploys to EKS.
 
@@ -309,7 +294,7 @@ uvicorn agent.main:app --host 0.0.0.0 --port 8000
 
 ---
 
-### Phase 7 — Slack Notifications
+### Phase 6 — Slack Notifications
 
 **What:** AI agent sends structured incident reports to Slack `#alerts` channel via Incoming Webhooks — covering what happened, root cause, action taken, and result.
 
@@ -332,7 +317,7 @@ requests.post(webhook_url, json=payload)
 
 ---
 
-### Phase 8 — Agent Deployed on Kubernetes
+### Phase 7 — Agent Deployed on Kubernetes
 
 **What:** Packaged the AI agent as a Docker container and deployed it as a Kubernetes pod with proper RBAC (ServiceAccount + ClusterRole + ClusterRoleBinding).
 
@@ -362,7 +347,7 @@ kubectl apply -f k8s/agent/deployment.yaml
 
 ---
 
-### Phase 9 — AWS Bedrock Integration
+### Phase 8 — AWS Bedrock Integration
 
 **What:** Integrated AWS Bedrock (Claude Haiku) as the production LLM alongside Groq (development). A single environment variable switches between them.
 
@@ -387,7 +372,7 @@ USE_BEDROCK=true  # in .env or K8s secret
 
 ---
 
-### Phase 10 — Grafana Dashboards
+### Phase 9 — Grafana Dashboards
 
 **What:** Imported Kubernetes pod monitoring dashboard (ID: 15760) into Grafana, showing CPU, memory, and pod health for all namespaces.
 
@@ -412,7 +397,7 @@ Dashboard shows:
 
 ---
 
-### Phase 11 — Chaos Engineering Demo
+### Phase 10 — Chaos Engineering Demo
 
 **What:** Live end-to-end self-healing demonstration — deliberately crashed the backend pod and watched the AI agent detect, analyze, heal, and report.
 
