@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ai-agent-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ai-agent-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "pods/log", "services", "endpoints"]
+  verbs: ["get", "list", "watch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ai-agent-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: ai-agent-sa
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: ai-agent-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-agent
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-agent
+  template:
+    metadata:
+      labels:
+        app: ai-agent
+    spec:
+      serviceAccountName: ai-agent-sa
+      containers:
+      - name: ai-agent
+        image: manesaurabh1704devops/ai-healer-agent:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: GROQ_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-agent-secrets
+              key: GROQ_API_KEY
+        - name: SLACK_WEBHOOK_URL
+          valueFrom:
+            secretKeyRef:
+              name: ai-agent-secrets
+              key: SLACK_WEBHOOK_URL
+        - name: AWS_REGION
+          value: "ap-south-1"
+        - name: PROMETHEUS_URL
+          value: "http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
+        - name: ALERTMANAGER_URL
+          value: "http://alertmanager-operated.monitoring.svc.cluster.local:9093"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-agent-service
+  namespace: default
+spec:
+  selector:
+    app: ai-agent
+  ports:
+  - port: 8000
+    targetPort: 8000
